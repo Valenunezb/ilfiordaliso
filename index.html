@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asilo Suiza - Panel Directora</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-indigo-900">Panel de Control 👋</h1>
+            <p class="text-gray-500 mt-2">Resumen de tu equipo de educadoras</p>
+        </header>
+
+        <div id="contenedor-educadoras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <p class="text-gray-400">Cargando datos desde la base de datos...</p>
+        </div>
+    </div>
+
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
