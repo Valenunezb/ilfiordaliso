@@ -172,7 +172,7 @@ async function guardarNino(event) {
 let listaGlobalNinos = []; // Guardamos la lista aquí para poder ordenarla
 let ordenActual = { columna: null, ascendente: true };
 
-// 1. Descargar y preparar los datos
+// 1. Descargar y preparar los datos (VERSIÓN ACTUALIZADA)
 async function cargarSalas() {
     const { data: children, error } = await supabaseClient.from('children').select('*');
     
@@ -181,22 +181,88 @@ async function cargarSalas() {
         return;
     }
     
-    // Calculamos la edad y la sala de cada niño
     listaGlobalNinos = children.map(nino => {
         const nacimiento = new Date(nino.birth_date);
         const hoy = new Date();
         let meses = (hoy.getFullYear() - nacimiento.getFullYear()) * 12 - nacimiento.getMonth() + hoy.getMonth();
         
-        let sala = "Sin Asignar";
-        if (meses >= 3 && meses <= 12) sala = "Brucco";
-        else if (meses > 12 && meses <= 24) sala = "Bozzoli";
-        else if (meses > 24 && meses <= 36) sala = "Farfalle";
-        else if (meses > 36) sala = "Centro";
+        // Calculamos la sala sugerida por defecto
+        let salaSugerida = "Sin Asignar";
+        if (meses >= 3 && meses <= 12) salaSugerida = "Brucco";
+        else if (meses > 12 && meses <= 24) salaSugerida = "Bozzoli";
+        else if (meses > 24 && meses <= 36) salaSugerida = "Farfalle";
+        else if (meses > 36) salaSugerida = "Centro";
 
-        return { ...nino, edadMeses: meses, salaActual: sala };
+        // VERIFICACIÓN: ¿La directora le asignó una sala manual?
+        let salaFinal = nino.sala_asignada ? nino.sala_asignada : salaSugerida;
+        
+        // Marcador: ¿Está en una sala distinta a la sugerida por su edad?
+        let esModificado = nino.sala_asignada && nino.sala_asignada !== salaSugerida;
+
+        return { ...nino, edadMeses: meses, salaActual: salaFinal, modificado: esModificado };
     });
 
     dibujarSalas();
+}
+
+// 3. Dibujar las burbujas y las tablas (VERSIÓN ACTUALIZADA)
+function dibujarSalas() {
+    const contenedor = document.getElementById('contenedor-salas');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = ''; 
+
+    const nombresSalas = ["Brucco", "Bozzoli", "Farfalle", "Centro", "Sin Asignar"];
+    
+    nombresSalas.forEach(nombreSala => {
+        const ninosEnSala = listaGlobalNinos.filter(n => n.salaActual === nombreSala);
+        
+        if (ninosEnSala.length === 0) return; 
+
+        const detalles = document.createElement('details');
+        detalles.className = "bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 group outline-none";
+        
+        detalles.innerHTML = `
+            <summary class="font-bold text-lg text-indigo-900 cursor-pointer list-none flex justify-between items-center outline-none">
+                <span>🏠 Sala ${nombreSala} <span class="text-sm text-gray-500 font-normal ml-2">(${ninosEnSala.length} niños)</span></span>
+                <span class="text-indigo-400 group-open:rotate-180 transition-transform duration-300">▼</span>
+            </summary>
+            
+            <div class="mt-6 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-50/50 text-indigo-800 text-sm border-b border-indigo-100">
+                            <th class="p-3 cursor-pointer hover:bg-indigo-100 rounded-tl-lg transition-colors" onclick="ordenarNinos('first_name')">Nombre ↕</th>
+                            <th class="p-3 cursor-pointer hover:bg-indigo-100 transition-colors" onclick="ordenarNinos('last_name')">Apellido ↕</th>
+                            <th class="p-3 cursor-pointer hover:bg-indigo-100 transition-colors" onclick="ordenarNinos('edadMeses')">Edad (meses) ↕</th>
+                            <th class="p-3 rounded-tr-lg">Modificar Sala</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ninosEnSala.map(n => `
+                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                <td class="p-3 font-medium text-gray-800 flex items-center">
+                                    ${n.first_name}
+                                    ${n.modificado ? '<span title="Modificado manualmente" class="ml-2 w-2 h-2 rounded-full bg-amber-400 shadow-sm"></span>' : ''}
+                                </td>
+                                <td class="p-3 text-gray-600">${n.last_name}</td>
+                                <td class="p-3 text-gray-600">${n.edadMeses}</td>
+                                <td class="p-3">
+                                    <select onchange="cambiarSalaManual('${n.id}', this.value)" class="border border-gray-200 rounded-lg p-1.5 text-sm text-gray-700 outline-none focus:border-indigo-500 bg-white cursor-pointer">
+                                        <option value="Brucco" ${n.salaActual === 'Brucco' ? 'selected' : ''}>Brucco</option>
+                                        <option value="Bozzoli" ${n.salaActual === 'Bozzoli' ? 'selected' : ''}>Bozzoli</option>
+                                        <option value="Farfalle" ${n.salaActual === 'Farfalle' ? 'selected' : ''}>Farfalle</option>
+                                        <option value="Centro" ${n.salaActual === 'Centro' ? 'selected' : ''}>Centro</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        contenedor.appendChild(detalles);
+    });
 }
 
 // 2. Función para ordenar al hacer clic en las columnas
@@ -284,3 +350,20 @@ function dibujarSalas() {
 
 // Ejecutamos la carga apenas se lea el archivo
 cargarSalas();
+
+// Función para guardar el cambio de sala manual en Supabase
+async function cambiarSalaManual(idNino, nuevaSala) {
+    const { error } = await supabaseClient
+        .from('children')
+        .update({ sala_asignada: nuevaSala }) // Guardamos la sala manual
+        .eq('id', idNino); // Buscamos al niño por su ID exacto
+
+    if (error) {
+        console.error("Error al cambiar sala:", error);
+        alert("No se pudo cambiar la sala.");
+        return;
+    }
+
+    // Si todo salió bien, recargamos las tablas para que el niño "salte" a su nueva burbuja
+    cargarSalas();
+}
