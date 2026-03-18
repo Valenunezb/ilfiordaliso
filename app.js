@@ -133,15 +133,14 @@ async function guardarNino(event) {
     botonGuardar.innerText = "Guardando...";
     botonGuardar.disabled = true;
 
-    // 3. Enviamos los datos a Supabase
-    // OJO: Asegúrate de que tu tabla en Supabase se llame 'ninos'
+    // 3. Enviamos los datos a Supabase adaptado a tu tabla en inglés
     const { data, error } = await supabaseClient
-        .from('ninos') 
+        .from('children') // Tu tabla real
         .insert([
             { 
-                nombre: inputNombre, 
-                apellido: inputApellido, 
-                fecha_nacimiento: inputFechaNac 
+                first_name: inputNombre,     // Tu columna de nombre
+                last_name: inputApellido,    // Tu columna de apellido
+                birth_date: inputFechaNac    // Tu columna de fecha
             }
         ]);
 
