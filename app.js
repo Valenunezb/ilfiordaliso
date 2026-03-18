@@ -173,6 +173,7 @@ let listaGlobalNinos = []; // Guardamos la lista aquí para poder ordenarla
 let ordenActual = { columna: null, ascendente: true };
 
 // 1. Descargar y preparar los datos (VERSIÓN ACTUALIZADA)
+// 1. Descargar y preparar los datos (VERSIÓN ACTUALIZADA)
 async function cargarSalas() {
     const { data: children, error } = await supabaseClient.from('children').select('*');
     
@@ -200,6 +201,30 @@ async function cargarSalas() {
         let esModificado = nino.sala_asignada && nino.sala_asignada !== salaSugerida;
 
         return { ...nino, edadMeses: meses, salaActual: salaFinal, modificado: esModificado };
+    });
+
+    dibujarSalas();
+}
+
+// 2. Función para ordenar al hacer clic en las columnas
+function ordenarNinos(columna) {
+    if (ordenActual.columna === columna) {
+        ordenActual.ascendente = !ordenActual.ascendente; // Cambia de A-Z a Z-A
+    } else {
+        ordenActual.columna = columna;
+        ordenActual.ascendente = true;
+    }
+
+    listaGlobalNinos.sort((a, b) => {
+        let valA = a[columna];
+        let valB = b[columna];
+        
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+        if (valA < valB) return ordenActual.ascendente ? -1 : 1;
+        if (valA > valB) return ordenActual.ascendente ? 1 : -1;
+        return 0;
     });
 
     dibujarSalas();
@@ -249,89 +274,6 @@ function dibujarSalas() {
                                 <td class="p-3 text-gray-600">${n.edadMeses}</td>
                                 <td class="p-3">
                                     <select onchange="cambiarSalaManual('${n.id}', this.value)" class="border border-gray-200 rounded-lg p-1.5 text-sm text-gray-700 outline-none focus:border-indigo-500 bg-white cursor-pointer">
-                                        <option value="Brucco" ${n.salaActual === 'Brucco' ? 'selected' : ''}>Brucco</option>
-                                        <option value="Bozzoli" ${n.salaActual === 'Bozzoli' ? 'selected' : ''}>Bozzoli</option>
-                                        <option value="Farfalle" ${n.salaActual === 'Farfalle' ? 'selected' : ''}>Farfalle</option>
-                                        <option value="Centro" ${n.salaActual === 'Centro' ? 'selected' : ''}>Centro</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        contenedor.appendChild(detalles);
-    });
-}
-
-// 2. Función para ordenar al hacer clic en las columnas
-function ordenarNinos(columna) {
-    if (ordenActual.columna === columna) {
-        ordenActual.ascendente = !ordenActual.ascendente; // Cambia de A-Z a Z-A
-    } else {
-        ordenActual.columna = columna;
-        ordenActual.ascendente = true;
-    }
-
-    listaGlobalNinos.sort((a, b) => {
-        let valA = a[columna];
-        let valB = b[columna];
-        
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (valA < valB) return ordenActual.ascendente ? -1 : 1;
-        if (valA > valB) return ordenActual.ascendente ? 1 : -1;
-        return 0;
-    });
-
-    dibujarSalas();
-}
-
-// 3. Dibujar las burbujas (acordeones) y las tablas
-function dibujarSalas() {
-    const contenedor = document.getElementById('contenedor-salas');
-    if (!contenedor) return;
-
-    contenedor.innerHTML = ''; // Limpiamos antes de dibujar
-
-    const nombresSalas = ["Brucco", "Bozzoli", "Farfalle", "Centro", "Sin Asignar"];
-    
-    nombresSalas.forEach(nombreSala => {
-        const ninosEnSala = listaGlobalNinos.filter(n => n.salaActual === nombreSala);
-        
-        // Si no hay niños en esta sala, no dibujamos la burbuja
-        if (ninosEnSala.length === 0) return; 
-
-        const detalles = document.createElement('details');
-        // 'details' y 'summary' de HTML crean un acordeón nativo sin necesidad de librerías
-        detalles.className = "bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4 group outline-none";
-        
-        detalles.innerHTML = `
-            <summary class="font-bold text-lg text-indigo-900 cursor-pointer list-none flex justify-between items-center outline-none">
-                <span>🏠 Sala ${nombreSala} <span class="text-sm text-gray-500 font-normal ml-2">(${ninosEnSala.length} niños)</span></span>
-                <span class="text-indigo-400 group-open:rotate-180 transition-transform duration-300">▼</span>
-            </summary>
-            
-            <div class="mt-6 overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-indigo-50/50 text-indigo-800 text-sm border-b border-indigo-100">
-                            <th class="p-3 cursor-pointer hover:bg-indigo-100 rounded-tl-lg transition-colors" onclick="ordenarNinos('first_name')">Nombre ↕</th>
-                            <th class="p-3 cursor-pointer hover:bg-indigo-100 transition-colors" onclick="ordenarNinos('last_name')">Apellido ↕</th>
-                            <th class="p-3 cursor-pointer hover:bg-indigo-100 transition-colors" onclick="ordenarNinos('edadMeses')">Edad (meses) ↕</th>
-                            <th class="p-3 rounded-tr-lg">Modificar Sala</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${ninosEnSala.map(n => `
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                                <td class="p-3 font-medium text-gray-800">${n.first_name}</td>
-                                <td class="p-3 text-gray-600">${n.last_name}</td>
-                                <td class="p-3 text-gray-600">${n.edadMeses}</td>
-                                <td class="p-3">
-                                    <select class="border border-gray-200 rounded-lg p-1.5 text-sm text-gray-700 outline-none focus:border-indigo-500 bg-white cursor-pointer">
                                         <option value="Brucco" ${n.salaActual === 'Brucco' ? 'selected' : ''}>Brucco</option>
                                         <option value="Bozzoli" ${n.salaActual === 'Bozzoli' ? 'selected' : ''}>Bozzoli</option>
                                         <option value="Farfalle" ${n.salaActual === 'Farfalle' ? 'selected' : ''}>Farfalle</option>
