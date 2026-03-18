@@ -1,3 +1,25 @@
+// --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
+
+function cambiarVista(idVistaDestino) {
+    // 1. Seleccionamos todas las secciones que son "vistas"
+    const vistas = ['vista-educadoras', 'vista-ninos', 'vista-horarios'];
+    
+    // 2. Recorremos cada vista
+    vistas.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (id === idVistaDestino) {
+            // Si es la vista que queremos ver, le quitamos el 'hidden'
+            elemento.classList.remove('hidden');
+        } else {
+            // Si no es, la ocultamos agregando 'hidden'
+            elemento.classList.add('hidden');
+        }
+    });
+
+    // Opcional: Aquí podríamos hacer que los botones del menú cambien de color 
+    // para saber en qué sección estamos, pero lo mantendremos simple por ahora.
+}
+
 // Función para buscar las educadoras y mostrarlas
 async function cargarEducadoras() {
     const contenedor = document.getElementById('contenedor-educadoras');

@@ -4,23 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asilo Suiza - Panel Directora</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans p-8">
+<body class="bg-gray-50 text-gray-800 font-sans flex h-screen overflow-hidden">
 
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8">
-            <h1 class="text-4xl font-bold text-indigo-900">Panel de Control 👋</h1>
-            <p class="text-gray-500 mt-2">Resumen de tu equipo de educadoras</p>
-        </header>
-
-        <div id="contenedor-educadoras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <p class="text-gray-400">Cargando datos desde la base de datos...</p>
+    <aside class="w-64 bg-slate-900 text-white flex flex-col">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold tracking-wider text-indigo-400">ASILO APP</h1>
+            <p class="text-xs text-slate-400 mt-1">Panel de Dirección</p>
         </div>
-    </div>
+        <nav class="flex-1 px-4 space-y-2">
+            <button onclick="cambiarVista('vista-educadoras')" class="w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors">
+                👩‍🏫 Mi Equipo
+            </button>
+            <button onclick="cambiarVista('vista-ninos')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                🧸 Niños y Salas
+            </button>
+            <button onclick="cambiarVista('vista-horarios')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+                📅 Horarios (Ratios)
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto relative">
+        
+        <section id="vista-educadoras" class="vista-activa">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Hola, Directora 👋</h2>
+                <p class="text-gray-500 mt-1">Resumen de tu equipo de educadoras.</p>
+            </header>
+            <div id="contenedor-educadoras" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p class="text-gray-400 animate-pulse">Cargando datos desde la base de datos...</p>
+            </div>
+        </section>
+
+        <section id="vista-ninos" class="hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Gestión de Niños</h2>
+                <p class="text-gray-500 mt-1">Asignación de salas y cálculo de edades.</p>
+            </header>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500">Aquí construiremos la tabla de niños y la calculadora mágica de edad para sugerir salas (Bozzoli, Farfalle, etc).</p>
+            </div>
+        </section>
+
+        <section id="vista-horarios" class="hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Horarios y Ratios</h2>
+                <p class="text-gray-500 mt-1">Control de asistencia y ley suiza.</p>
+            </header>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500">Aquí irá tu semáforo de ratios y el calendario predictivo.</p>
+            </div>
+        </section>
+
+    </main>
 
     <script src="supabase.js"></script>
     <script src="app.js"></script>
