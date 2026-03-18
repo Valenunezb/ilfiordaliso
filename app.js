@@ -108,3 +108,58 @@ function calcularSala() {
     divAlerta.innerHTML = `🍼 Según su edad (${mesesEdad} meses), el sistema sugiere la sala: <strong>${salaSugerida}</strong>`;
     divAlerta.classList.remove('hidden');
 }
+
+// --- LÓGICA PARA GUARDAR NIÑOS EN SUPABASE ---
+
+async function guardarNino(event) {
+    // 1. Evitamos que la página se recargue al hacer clic
+    event.preventDefault(); 
+
+    // 2. Buscamos los valores que la directora escribió
+    // (Asegúrate de que estos IDs sean los mismos que tienes en tu HTML)
+    const inputNombre = document.getElementById('nino-nombre').value;
+    const inputApellido = document.getElementById('nino-apellido').value;
+    const inputFechaNac = document.getElementById('nino-nacimiento').value;
+
+    // Si falta algo, le avisamos
+    if (!inputNombre || !inputApellido || !inputFechaNac) {
+        alert("Por favor, completa todos los campos.");
+        return;
+    }
+
+    // Cambiamos el texto del botón para que sepa que está cargando
+    const botonGuardar = document.getElementById('btn-guardar-nino');
+    const textoOriginal = botonGuardar.innerText;
+    botonGuardar.innerText = "Guardando...";
+    botonGuardar.disabled = true;
+
+    // 3. Enviamos los datos a Supabase
+    // OJO: Asegúrate de que tu tabla en Supabase se llame 'ninos'
+    const { data, error } = await supabaseClient
+        .from('ninos') 
+        .insert([
+            { 
+                nombre: inputNombre, 
+                apellido: inputApellido, 
+                fecha_nacimiento: inputFechaNac 
+            }
+        ]);
+
+    // Devolvemos el botón a la normalidad
+    botonGuardar.innerText = textoOriginal;
+    botonGuardar.disabled = false;
+
+    // 4. Revisamos si hubo un error
+    if (error) {
+        console.error("Error al guardar en Supabase:", error);
+        alert("Hubo un problema al guardar el niño. Revisa la consola.");
+        return;
+    }
+
+    // 5. ¡Éxito! Limpiamos el formulario
+    alert("¡Alumno registrado con éxito! 🧸");
+    document.getElementById('nino-nombre').value = '';
+    document.getElementById('nino-apellido').value = '';
+    document.getElementById('nino-nacimiento').value = '';
+    document.getElementById('alerta-sala').classList.add('hidden'); // Ocultamos la sugerencia de sala
+}
