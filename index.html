@@ -41,11 +41,35 @@
 
         <section id="vista-ninos" class="hidden">
             <header class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-800">Gestión de Niños</h2>
-                <p class="text-gray-500 mt-1">Asignación de salas y cálculo de edades.</p>
+                <h2 class="text-3xl font-bold text-gray-800">Gestión de Niños 🧸</h2>
+                <p class="text-gray-500 mt-1">Ingreso y sugerencia inteligente de salas.</p>
             </header>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500">Aquí construiremos la tabla de niños y la calculadora mágica de edad para sugerir salas (Bozzoli, Farfalle, etc).</p>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+                <h3 class="font-bold text-lg text-gray-800 mb-4">Registrar Nuevo Alumno</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">Nombre</label>
+                        <input type="text" id="nino-nombre" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">Apellido</label>
+                        <input type="text" id="nino-apellido" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-500 mb-1">Fecha de Nac.</label>
+                        <input type="date" id="nino-nacimiento" onchange="calcularSala()" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <button class="w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                            Guardar Niño
+                        </button>
+                    </div>
+                </div>
+
+                <div id="alerta-sala" class="mt-4 p-3 bg-indigo-50 text-indigo-800 rounded-lg hidden font-medium text-sm">
+                    </div>
             </div>
         </section>
 

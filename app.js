@@ -70,3 +70,41 @@ async function cargarEducadoras() {
 
 // Ejecutamos la función apenas se lea este archivo
 cargarEducadoras();
+
+// --- LÓGICA DE NIÑOS ---
+
+function calcularSala() {
+    const inputFecha = document.getElementById('nino-nacimiento').value;
+    const divAlerta = document.getElementById('alerta-sala');
+    
+    if (!inputFecha) {
+        divAlerta.classList.add('hidden');
+        return;
+    }
+
+    // Calculamos la edad en meses
+    const fechaNacimiento = new Date(inputFecha);
+    const hoy = new Date();
+    
+    let mesesEdad = (hoy.getFullYear() - fechaNacimiento.getFullYear()) * 12;
+    mesesEdad -= fechaNacimiento.getMonth();
+    mesesEdad += hoy.getMonth();
+
+    // Determinamos la sala según la regla (puedes ajustar estos meses)
+    let salaSugerida = "";
+    if (mesesEdad >= 3 && mesesEdad <= 12) {
+        salaSugerida = "Brucco (3m - 1a)";
+    } else if (mesesEdad > 12 && mesesEdad <= 24) {
+        salaSugerida = "Bozzoli (1a - 2a)";
+    } else if (mesesEdad > 24 && mesesEdad <= 36) {
+        salaSugerida = "Farfalle (2a - 3a)";
+    } else if (mesesEdad > 36) {
+        salaSugerida = "Centro (Mayores)";
+    } else {
+        salaSugerida = "Edad muy temprana";
+    }
+
+    // Mostramos la sugerencia en pantalla
+    divAlerta.innerHTML = `🍼 Según su edad (${mesesEdad} meses), el sistema sugiere la sala: <strong>${salaSugerida}</strong>`;
+    divAlerta.classList.remove('hidden');
+}
