@@ -1,23 +1,33 @@
 // --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
 
+// --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
+
 function cambiarVista(idVistaDestino) {
-    // 1. Seleccionamos todas las secciones que son "vistas"
     const vistas = ['vista-educadoras', 'vista-ninos', 'vista-horarios'];
     
-    // 2. Recorremos cada vista
+    // Diccionario para saber qué botón le pertenece a qué vista
+    const botones = {
+        'vista-educadoras': 'btn-menu-educadoras',
+        'vista-ninos': 'btn-menu-ninos',
+        'vista-horarios': 'btn-menu-horarios'
+    };
+
     vistas.forEach(id => {
-        const elemento = document.getElementById(id);
+        const elementoSeccion = document.getElementById(id);
+        const elementoBoton = document.getElementById(botones[id]);
+
         if (id === idVistaDestino) {
-            // Si es la vista que queremos ver, le quitamos el 'hidden'
-            elemento.classList.remove('hidden');
+            // Mostramos la sección
+            elementoSeccion.classList.remove('hidden');
+            // Encendemos el botón (clases de Tailwind para activo)
+            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors";
         } else {
-            // Si no es, la ocultamos agregando 'hidden'
-            elemento.classList.add('hidden');
+            // Ocultamos la sección
+            elementoSeccion.classList.add('hidden');
+            // Apagamos el botón (clases de Tailwind para inactivo)
+            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors";
         }
     });
-
-    // Opcional: Aquí podríamos hacer que los botones del menú cambien de color 
-    // para saber en qué sección estamos, pero lo mantendremos simple por ahora.
 }
 
 // Función para buscar las educadoras y mostrarlas

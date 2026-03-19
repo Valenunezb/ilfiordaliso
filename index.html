@@ -15,13 +15,13 @@
             <p class="text-xs text-slate-400 mt-1">Panel de Dirección</p>
         </div>
         <nav class="flex-1 px-4 space-y-2">
-            <button onclick="cambiarVista('vista-educadoras')" class="w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors">
+            <button id="btn-menu-educadoras" onclick="cambiarVista('vista-educadoras')" class="w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors">
                 👩‍🏫 Mi Equipo
             </button>
-            <button onclick="cambiarVista('vista-ninos')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+            <button id="btn-menu-ninos" onclick="cambiarVista('vista-ninos')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                 🧸 Niños y Salas
             </button>
-            <button onclick="cambiarVista('vista-horarios')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
+            <button id="btn-menu-horarios" onclick="cambiarVista('vista-horarios')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                 📅 Horarios (Ratios)
             </button>
         </nav>
@@ -75,18 +75,25 @@
         </section>
 
         <section id="vista-horarios" class="hidden">
-            <header class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-800">Horarios y Ratios</h2>
-                <p class="text-gray-500 mt-1">Control de asistencia y ley suiza.</p>
+            <header class="mb-8 flex justify-between items-end">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Horarios y Ratios</h2>
+                    <p class="text-gray-500 mt-1">Planificación semanal por sala.</p>
+                </div>
+                <div class="bg-white px-4 py-2 rounded-lg border border-gray-200 shadow-sm text-sm font-medium text-gray-600">
+                    Semana: 30 Mar - 03 Abr
+                </div>
             </header>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500">Aquí irá tu semáforo de ratios y el calendario predictivo.</p>
+            
+            <div id="contenedor-calendario" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+                <p class="p-6 text-gray-400 animate-pulse">Cargando grilla de horarios...</p>
             </div>
         </section>
 
     </main>
 
     <script src="supabase.js"></script>
+    <script src="horarios.js"></script> <script src="app.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
