@@ -115,23 +115,19 @@
                     <div class="flex gap-2 items-end mb-4">
                         <div class="flex-1">
                             <label class="block text-sm text-gray-500 mb-1">Fecha</label>
-                            <input type="date" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
+                            <input type="date" id="festivo-fecha" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
                         </div>
                         <div class="flex-1">
                             <label class="block text-sm text-gray-500 mb-1">Motivo / Festividad</label>
-                            <input type="text" placeholder="Ej: Navidad" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
+                            <input type="text" id="festivo-nombre" placeholder="Ej: Navidad" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
                         </div>
-                        <button class="bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                        <button id="btn-guardar-festivo" onclick="guardarFestivo(event)" class="bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
                             Añadir
                         </button>
                     </div>
                     
-                    <ul class="mt-4 space-y-2 text-sm">
-                        <li class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100">
-                            <span class="font-medium text-gray-700">01 Enero 2025</span>
-                            <span class="text-gray-500">Año Nuevo</span>
-                            <button class="text-red-500 hover:text-red-700">X</button>
-                        </li>
+                    <ul id="lista-festivos" class="mt-4 space-y-2 text-sm">
+                        <li class="text-gray-400 animate-pulse">Cargando festivos...</li>
                     </ul>
                 </div>
             </div>
@@ -141,6 +137,7 @@
 
     <script src="supabase.js"></script>
     <script src="horarios.js"></script> <script src="app.js"></script>
+    <script src="ajustes.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
