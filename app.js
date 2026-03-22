@@ -1,7 +1,5 @@
 // --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
 
-// --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
-
 function cambiarVista(idVistaDestino) {
     const vistas = ['vista-educadoras', 'vista-ninos', 'vista-horarios'];
     
@@ -318,4 +316,30 @@ async function cambiarSalaManual(idNino, nuevaSala) {
 
     // Si todo salió bien, recargamos las tablas para que el niño "salte" a su nueva burbuja
     cargarSalas();
+}
+
+function cambiarVista(idVistaDestino) {
+    // Añadimos 'vista-ajustes' al array
+    const vistas = ['vista-educadoras', 'vista-ninos', 'vista-horarios', 'vista-ajustes'];
+    
+    // Añadimos el nuevo botón al diccionario
+    const botones = {
+        'vista-educadoras': 'btn-menu-educadoras',
+        'vista-ninos': 'btn-menu-ninos',
+        'vista-horarios': 'btn-menu-horarios',
+        'vista-ajustes': 'btn-menu-ajustes'
+    };
+
+    vistas.forEach(id => {
+        const elementoSeccion = document.getElementById(id);
+        const elementoBoton = document.getElementById(botones[id]);
+
+        if (id === idVistaDestino) {
+            elementoSeccion.classList.remove('hidden');
+            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors";
+        } else {
+            elementoSeccion.classList.add('hidden');
+            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors";
+        }
+    });
 }

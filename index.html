@@ -24,6 +24,10 @@
             <button id="btn-menu-horarios" onclick="cambiarVista('vista-horarios')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
                 📅 Horarios (Ratios)
             </button>
+            <button id="btn-menu-ajustes" onclick="cambiarVista('vista-ajustes')" class="w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors mt-8">
+                ⚙️ Ajustes Generales
+            </button>
+        </nav>
         </nav>
     </aside>
 
@@ -87,6 +91,49 @@
             
             <div id="contenedor-calendario" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
                 <p class="p-6 text-gray-400 animate-pulse">Cargando grilla de horarios...</p>
+            </div>
+        </section>
+
+        <section id="vista-ajustes" class="hidden">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Ajustes Generales</h2>
+                <p class="text-gray-500 mt-1">Configuración de festivos, idioma y reglas de RRHH.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4">🌍 Idioma de la Plataforma</h3>
+                    <select id="selector-idioma" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="it">Italiano</option>
+                    </select>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-lg text-gray-800 mb-4">🎉 Días Festivos (Calendario Anual)</h3>
+                    <div class="flex gap-2 items-end mb-4">
+                        <div class="flex-1">
+                            <label class="block text-sm text-gray-500 mb-1">Fecha</label>
+                            <input type="date" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm text-gray-500 mb-1">Motivo / Festividad</label>
+                            <input type="text" placeholder="Ej: Navidad" class="w-full border border-gray-300 rounded-lg p-2 focus:border-indigo-500 outline-none">
+                        </div>
+                        <button class="bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition">
+                            Añadir
+                        </button>
+                    </div>
+                    
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li class="flex justify-between items-center p-2 bg-gray-50 rounded border border-gray-100">
+                            <span class="font-medium text-gray-700">01 Enero 2025</span>
+                            <span class="text-gray-500">Año Nuevo</span>
+                            <button class="text-red-500 hover:text-red-700">X</button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </section>
 
