@@ -365,3 +365,38 @@ async function eliminarAsignacion() {
 
 // Arrancamos el sistema
 actualizarCalendario();
+
+// --- FUNCIONES DE EXPORTACIÓN Y VISTAS ---
+
+function imprimirHorario() {
+    // Al llamar a print(), el navegador abre automáticamente la ventana para guardar como PDF o Imprimir
+    window.print();
+}
+
+function compartirWhatsApp() {
+    const textoSemana = document.getElementById('texto-rango-semana').innerText;
+    const mensaje = `¡Hola equipo! 🌟 Ya están listos los horarios para la semana: *${textoSemana}*. Por favor ingresen al sistema para revisar sus turnos y salas asignadas.`;
+    
+    // Abre WhatsApp Web o la app del celular con el mensaje pre-escrito
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+}
+
+function compartirEmail() {
+    const textoSemana = document.getElementById('texto-rango-semana').innerText;
+    const asunto = `Nuevos Horarios: Semana ${textoSemana}`;
+    const cuerpo = `¡Hola equipo!\n\nYa están disponibles los horarios para la semana: ${textoSemana}.\n\nPor favor, ingresen a la plataforma para revisar sus turnos y salas asignadas.\n\nSaludos cordiales.`;
+    
+    // Abre el gestor de correos (Outlook, Gmail, Apple Mail)
+    window.location.href = `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+}
+
+function cambiarVista() {
+    const vistaSeleccionada = document.getElementById('selector-vista').value;
+    
+    if (vistaSeleccionada === 'mes' || vistaSeleccionada === 'ano') {
+        alert("¡Has seleccionado la vista " + vistaSeleccionada.toUpperCase() + "!\n\nEsta será nuestra próxima gran actualización visual. Por ahora te regresaré a la vista semanal.");
+        // Devolvemos el selector a la semana temporalmente
+        document.getElementById('selector-vista').value = 'semana';
+    }
+}

@@ -79,25 +79,38 @@
         </section>
 
         <section id="vista-horarios" class="hidden">
-            <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+            <header class="mb-8 flex flex-col lg:flex-row lg:justify-between lg:items-end gap-4">
                 <div>
                     <h2 class="text-3xl font-bold text-gray-800">Horarios y Ratios</h2>
-                    <p class="text-gray-500 mt-1">Planificación semanal por sala.</p>
+                    <div class="flex items-center gap-3 mt-2">
+                        <select id="selector-vista" onchange="cambiarVista()" class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 cursor-pointer shadow-sm font-medium">
+                            <option value="semana">📅 Vista Semanal</option>
+                            <option value="mes">🗓️ Vista Mensual</option>
+                            <option value="ano">📆 Vista Anual</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-                    <button onclick="cambiarSemana(-1)" class="p-1 hover:bg-gray-100 rounded text-gray-600 transition" title="Semana anterior">
-                        ◀
-                    </button>
-                    <div id="texto-rango-semana" class="text-sm font-bold text-indigo-900 min-w-[150px] text-center">
-                        Cargando...
+                <div class="flex flex-col sm:flex-row items-end sm:items-center gap-4">
+                    <div class="flex gap-2">
+                        <button onclick="imprimirHorario()" class="flex items-center gap-1 px-3 py-2 bg-gray-800 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition shadow-sm" title="Guardar como PDF o Imprimir">
+                            🖨️ PDF
+                        </button>
+                        <button onclick="compartirWhatsApp()" class="flex items-center gap-1 px-3 py-2 bg-[#25D366] text-white text-sm font-medium rounded-lg hover:bg-[#20b858] transition shadow-sm" title="Avisar por WhatsApp">
+                            📱 WhatsApp
+                        </button>
+                        <button onclick="compartirEmail()" class="flex items-center gap-1 px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition shadow-sm" title="Enviar por Correo">
+                            ✉️ Email
+                        </button>
                     </div>
-                    <button onclick="cambiarSemana(1)" class="p-1 hover:bg-gray-100 rounded text-gray-600 transition" title="Semana siguiente">
-                        ▶
-                    </button>
-                    <div class="h-6 w-px bg-gray-200 mx-1"></div> <button onclick="irAHoy()" class="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded hover:bg-indigo-100 transition">
-                        Hoy
-                    </button>
+
+                    <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                        <button onclick="cambiarSemana(-1)" class="p-1 hover:bg-gray-100 rounded text-gray-600 transition" title="Anterior">◀</button>
+                        <div id="texto-rango-semana" class="text-sm font-bold text-indigo-900 min-w-[150px] text-center">Cargando...</div>
+                        <button onclick="cambiarSemana(1)" class="p-1 hover:bg-gray-100 rounded text-gray-600 transition" title="Siguiente">▶</button>
+                        <div class="h-6 w-px bg-gray-200 mx-1"></div> 
+                        <button onclick="irAHoy()" class="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded hover:bg-indigo-100 transition">Hoy</button>
+                    </div>
                 </div>
             </header>
             
