@@ -244,7 +244,7 @@ async function cargarTurnosAsignados(lunes, viernes) {
 
 // --- 3. DIBUJAR VISTA MENSUAL ---
 
-function dibujarGrillaMensual() {
+async function dibujarGrillaMensual() {
     const contenedor = document.getElementById('contenedor-mensual');
     if (!contenedor) return;
 
@@ -252,12 +252,15 @@ function dibujarGrillaMensual() {
     const mes = fechaVistaActual.getMonth();
     
     const primerDiaMes = new Date(año, mes, 1);
-    
     let diaSemanaInicio = primerDiaMes.getDay() - 1;
     if (diaSemanaInicio === -1) diaSemanaInicio = 6; 
 
     const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     document.getElementById('texto-rango-semana').innerText = `${mesesNombres[mes]} ${año}`;
+
+    // 🌟 MAGIA REAL: Descargamos los Festivos y los Turnos de la base de datos
+    const { data: festivos } = await supabaseClient.from('holidays').select('*');
+    const { data: turnos } = await supabaseClient.from('schedules').select('*');
 
     let html = `<div class="min-w-[800px]">`;
     
@@ -285,8 +288,19 @@ function dibujarGrillaMensual() {
         const inicioCero = new Date(inicioSemanaActual).setHours(0,0,0,0);
         const finCero = new Date(finSemanaActual).setHours(0,0,0,0);
         const esSemanaActual = dActualCero >= inicioCero && dActualCero <= finCero;
+
+        // Formato de fecha para comparar con Supabase (YYYY-MM-DD)
+        const fechaSQL = `${diaActual.getFullYear()}-${String(diaActual.getMonth() + 1).padStart(2, '0')}-${String(diaActual.getDate()).padStart(2, '0')}`;
+
+        // 1. Buscar si este día es un festivo guardado
+        const diaFestivo = festivos ? festivos.find(f => f.holiday_date === fechaSQL) : null;
+        // 2. Contar cuántos turnos reales hay asignados ese día
+        const turnosDelDia = turnos ? turnos.filter(t => t.date_assigned === fechaSQL) : [];
         
+        // Estilos del cuadro del día
         let bgClass = esMesActual ? "bg-white" : "bg-gray-100/50";
+        if (diaFestivo && esMesActual) bgClass = "bg-rose-50/40"; // Fondo rojito suave para feriados
+        
         let opacidadBurbuja = esSemanaActual ? "opacity-100 shadow-sm" : "opacity-40 hover:opacity-100 transition-opacity";
         
         let numeroClase = esHoy 
@@ -294,29 +308,38 @@ function dibujarGrillaMensual() {
             : "font-semibold text-gray-700 w-8 h-8 flex items-center justify-center text-sm";
         if (!esMesActual && !esHoy) numeroClase = "font-medium text-gray-400 w-8 h-8 flex items-center justify-center text-sm";
 
-        const estados = [
-            { color: "bg-green-500", texto: "OK" },
-            { color: "bg-orange-500", texto: "Sobran Profes" },
-            { color: "bg-red-500", texto: "Faltan Profes" }
-        ];
-        const estadoVisual = estados[Math.floor(Math.random() * estados.length)];
         const esFinde = diaActual.getDay() === 0 || diaActual.getDay() === 6;
+
+        // --- CONSTRUCCIÓN DE LAS BURBUJAS REALES ---
+        let contenidoBurbuja = '';
+
+        if (diaFestivo && esMesActual) {
+            // Si es festivo, mostramos el motivo
+            contenidoBurbuja = `
+                <div class="mt-1 text-[10px] text-rose-700 bg-rose-100 border border-rose-200 px-2 py-1.5 rounded-md font-bold text-center truncate shadow-sm">
+                    🎉 ${diaFestivo.description}
+                </div>
+            `;
+        } else if (!esFinde && esMesActual && turnosDelDia.length > 0) {
+            // Si no es festivo y hay turnos, mostramos el dato REAL de cuántos turnos hay
+            contenidoBurbuja = `
+                <div class="flex flex-col gap-1 mt-1 ${opacidadBurbuja}">
+                    <div class="text-[10px] text-indigo-700 bg-indigo-100 border border-indigo-200 px-2 py-1.5 rounded-md font-bold text-center truncate tracking-wide">
+                        👩‍🏫 ${turnosDelDia.length} Turnos asig.
+                    </div>
+                </div>
+            `;
+        }
 
         html += `
             <div class="min-h-[120px] border-r border-b border-gray-200 p-2 relative hover:bg-gray-50 transition cursor-pointer group ${bgClass}" 
-                 onclick="saltarAsemana('${diaActual.toISOString()}')" title="Clic para ver detalles de este día">
+                 onclick="saltarAsemana('${diaActual.toISOString()}')" title="Clic para ver detalles de la semana">
                 
                 <div class="flex justify-end mb-2">
                     <span class="${numeroClase}">${diaActual.getDate()}</span>
                 </div>
                 
-                ${!esFinde && esMesActual ? `
-                    <div class="flex flex-col gap-1 mt-1 ${opacidadBurbuja}">
-                        <div class="text-[10px] text-white ${estadoVisual.color} px-2 py-1.5 rounded-md font-bold text-center truncate tracking-wide">
-                            ${estadoVisual.texto}
-                        </div>
-                    </div>
-                ` : ''}
+                ${contenidoBurbuja}
             </div>
         `;
         

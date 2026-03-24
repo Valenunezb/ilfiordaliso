@@ -149,8 +149,8 @@ async function guardarNino(event) {
 
 // --- LÓGICA DE LISTADO DE NIÑOS Y SALAS ---
 
-let listaGlobalNinos = []; // Guardamos la lista aquí para poder ordenarla
-let ordenActual = { columna: null, ascendente: true };
+var listaGlobalNinos = []; // Guardamos la lista aquí para poder ordenarla
+var ordenActual = { columna: null, ascendente: true };
 
 // 1. Descargar y preparar los datos (VERSIÓN ACTUALIZADA)
 // 1. Descargar y preparar los datos (VERSIÓN ACTUALIZADA)
