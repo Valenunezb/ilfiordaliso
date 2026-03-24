@@ -172,8 +172,52 @@
                 </div>
             </div>
         </section>
-
     </main>
+    
+    <div id="modal-asignar-turno" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
+            <header class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold text-gray-800">Asignar Educadora</h3>
+                <button onclick="cerrarModalTurno()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </header>
+            
+            <div class="mb-5 bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-sm text-indigo-800 flex justify-between items-center">
+                <div>
+                    <span class="block text-indigo-500 text-xs font-bold uppercase tracking-wider">Fecha Seleccionada</span>
+                    <span id="modal-fecha-texto" class="font-medium">---</span>
+                </div>
+                <div class="text-right">
+                    <span class="block text-indigo-500 text-xs font-bold uppercase tracking-wider">Hora Inicio</span>
+                    <span id="modal-hora-texto" class="font-bold text-lg">---</span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">👩‍🏫 Educadora</label>
+                    <select id="modal-select-educadora" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-gray-50 cursor-pointer">
+                        <option value="">Cargando educadoras...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">⏱️ Tipo de Turno</label>
+                    <select id="modal-select-turno" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-gray-50 cursor-pointer">
+                        <option value="">Cargando turnos...</option>
+                    </select>
+                </div>
+            </div>
+
+            <footer class="mt-8 flex justify-end gap-3">
+                <button onclick="cerrarModalTurno()" class="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition">Cancelar</button>
+                <button id="btn-guardar-asignacion" onclick="guardarAsignacion()" class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition">
+                    Asignar Turno
+                </button>
+            </footer>
+        </div>
+    </div>
 
     <script src="supabase.js"></script>
     <script src="horarios.js"></script> <script src="app.js"></script>
