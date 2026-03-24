@@ -84,58 +84,123 @@ function dibujarGrillaSemanal(lunesDate) {
     contenedor.innerHTML = html;
 }
 
-// 4. CARGAR Y PINTAR LOS TURNOS (ACTUALIZADO A "CINTAS VERTICALES")
+// 4. CARGAR Y PINTAR LOS TURNOS (SISTEMA ANTI-COLISIONES Y ORDEN POR SALA)
 async function cargarTurnosAsignados(lunes, viernes) {
     const lunesStr = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart(2, '0')}-${String(lunes.getDate()).padStart(2, '0')}`;
     const viernesStr = `${viernes.getFullYear()}-${String(viernes.getMonth() + 1).padStart(2, '0')}-${String(viernes.getDate()).padStart(2, '0')}`;
 
-    // Agregamos contract_percentage a la búsqueda de la educadora
     const { data: asignaciones } = await supabaseClient.from('schedules').select('*').gte('date_assigned', lunesStr).lte('date_assigned', viernesStr);
     const { data: staff } = await supabaseClient.from('staff').select('id, first_name, last_name, contract_percentage');
     const { data: tiposTurno } = await supabaseClient.from('shift_types').select('*');
 
     if (!asignaciones) return;
 
-    asignaciones.forEach(asignacion => {
-        const profesional = staff.find(s => s.id === asignacion.staff_id);
-        const tipo = tiposTurno.find(t => t.id == asignacion.shift_type_id);
-        
-        if (!profesional || !tipo) return;
+    // 1. Definimos el orden estricto de izquierda a derecha
+    const ordenSalas = ["Brucco", "Bozzoli", "Farfalle", "Centro"];
 
+    // Función auxiliar para convertir "08:30" en minutos (facilita calcular si chocan)
+    function horaAMinutos(horaTexto) {
+        const [h, m] = horaTexto.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    // 2. Agrupamos todos los turnos por Día y luego por Sala
+    const mapaDias = {};
+
+    asignaciones.forEach(asignacion => {
+        const date = asignacion.date_assigned;
+        if (!mapaDias[date]) {
+            mapaDias[date] = {};
+            ordenSalas.forEach(s => mapaDias[date][s] = []);
+            mapaDias[date]["Otros"] = [];
+        }
+        
+        let salaKey = asignacion.sala || "Otros";
+        if (!ordenSalas.includes(salaKey)) salaKey = "Otros";
+
+        const tipo = tiposTurno.find(t => t.id == asignacion.shift_type_id);
+        const profesional = staff.find(s => s.id === asignacion.staff_id);
+
+        if (tipo && profesional) {
+            const start = horaAMinutos(asignacion.start_time);
+            const end = start + (tipo.duration_hours * 60);
+            mapaDias[date][salaKey].push({ start, end, asignacion, tipo, profesional });
+        }
+    });
+
+    // 3. Procesamos cada día dibujando de izquierda a derecha
+    for (const date in mapaDias) {
+        let carrilGlobalIndex = 0; // Índice de columna general del día
+        const salasDelDia = [...ordenSalas, "Otros"];
+
+        salasDelDia.forEach(salaKey => {
+            const turnosSala = mapaDias[date][salaKey];
+            
+            // Ordenamos primero al que entra más temprano
+            turnosSala.sort((a, b) => a.start - b.start);
+
+            const carrilesOcupados = []; // Control de colisiones de esta sala
+
+            turnosSala.forEach(turnoInfo => {
+                let carrilLocal = 0;
+                let colocado = false;
+
+                // Buscamos un carril libre para que no se pise con otra de su misma sala
+                while (!colocado) {
+                    if (!carrilesOcupados[carrilLocal]) carrilesOcupados[carrilLocal] = [];
+
+                    const hayChoque = carrilesOcupados[carrilLocal].some(t => {
+                        return (turnoInfo.start < t.end) && (turnoInfo.end > t.start);
+                    });
+
+                    if (!hayChoque) {
+                        carrilesOcupados[carrilLocal].push(turnoInfo);
+                        colocado = true;
+                    } else {
+                        carrilLocal++; // Si choca, probamos en el carril de al lado
+                    }
+                }
+
+                // Dibujamos el bloque en su posición exacta
+                dibujarBloque(turnoInfo, carrilGlobalIndex + carrilLocal);
+            });
+
+            // Sumamos los carriles que usó esta sala para que la siguiente empiece más a la derecha
+            if (carrilesOcupados.length > 0) {
+                carrilGlobalIndex += carrilesOcupados.length;
+            }
+        });
+    }
+
+    // 4. El "Pintor"
+    function dibujarBloque(turnoInfo, laneIndex) {
+        const { asignacion, tipo, profesional } = turnoInfo;
         const idCelda = `celda-${asignacion.date_assigned}-${asignacion.start_time}`;
         const celda = document.getElementById(idCelda);
-        
+
         if (celda) {
             const alturaPx = tipo.duration_hours * 80;
-            
-            // MAGIA PARA QUE NO SE PISEN:
-            // Contamos cuántos turnos ya se dibujaron en este mismo cuadrito
-            const turnosPrevios = celda.children.length; 
-            const anchoCinta = 32; // 32 píxeles de ancho para que sea delgadita
-            // Desplazamos la cinta hacia la derecha si ya hay otras antes que ella
-            const desplazamientoIzquierda = turnosPrevios * (anchoCinta + 4); 
-            
+            const anchoCinta = 32;
+            const espacio = 6; // Píxeles de separación entre cintas
+            const desplazamientoIzquierda = laneIndex * (anchoCinta + espacio);
+
             const bloque = document.createElement('div');
-            
-            // Clases de Tailwind modificadas para ser una cinta estrecha
-            bloque.className = "absolute top-0 z-20 rounded shadow-sm overflow-hidden border border-white/40 text-white cursor-pointer hover:brightness-110 transition-all flex justify-center py-2";
+            bloque.className = "absolute top-0 z-20 rounded-md shadow-sm overflow-hidden border border-white/50 text-white cursor-pointer hover:brightness-110 hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center py-2";
             bloque.style.backgroundColor = tipo.color_hex;
             bloque.style.height = `calc(${alturaPx}px - 2px)`; 
             bloque.style.width = `${anchoCinta}px`;
             bloque.style.left = `${desplazamientoIzquierda}px`; 
-            
-            // Preparamos los textos (Sala abreviada y el % del contrato)
+
             const salaTexto = asignacion.sala ? asignacion.sala.substring(0,3).toUpperCase() : "S/S";
             const porcentaje = profesional.contract_percentage ? profesional.contract_percentage : '100';
 
-            // TEXTO VERTICAL (Nombre | 100% | Sala)
             bloque.innerHTML = `
                 <div class="text-[10px] font-bold whitespace-nowrap flex items-center gap-2 drop-shadow-md" style="writing-mode: vertical-rl; transform: rotate(180deg);">
-                    <span>${profesional.first_name}</span>
+                    <span class="tracking-wide">${profesional.first_name}</span>
                     <span class="opacity-60 font-normal">|</span>
                     <span>${porcentaje}%</span>
                     <span class="opacity-60 font-normal">|</span>
-                    <span class="bg-white/30 px-1 rounded">${salaTexto}</span>
+                    <span class="bg-white/30 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-widest">${salaTexto}</span>
                 </div>
             `;
 
@@ -146,7 +211,7 @@ async function cargarTurnosAsignados(lunes, viernes) {
 
             celda.appendChild(bloque);
         }
-    });
+    }
 }
 
 // --- LÓGICA DEL MODAL ---
