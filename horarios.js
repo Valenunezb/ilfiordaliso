@@ -13,7 +13,7 @@ function obtenerLunes(fecha) {
     return new Date(d.setDate(diferencia));
 }
 
-function cambiarVista() {
+function cambiarModoCalendario() {
     const vista = document.getElementById('selector-vista').value;
     const contSemanal = document.getElementById('contenedor-semanal');
     const contMensual = document.getElementById('contenedor-mensual');
@@ -29,7 +29,7 @@ function cambiarVista() {
     } else {
         alert("¡La vista Anual será nuestra próxima gran actualización! Por ahora veamos el mes.");
         document.getElementById('selector-vista').value = 'mes';
-        cambiarVista();
+        cambiarModoCalendario();
     }
 }
 
@@ -69,7 +69,7 @@ function irAHoy() {
 function saltarAsemana(fechaIso) {
     fechaVistaActual = new Date(fechaIso);
     document.getElementById('selector-vista').value = 'semana';
-    cambiarVista();
+    cambiarModoCalendario();
 }
 
 // --- 2. DIBUJAR VISTA SEMANAL Y TURNOS ---
@@ -486,5 +486,5 @@ function compartirEmail() {
     window.location.href = `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
 
-// Arrancamos el sistema (cambiarVista detecta si está en semana o mes al cargar)
-cambiarVista();
+// Arrancamos el sistema (cambiarModoCalendario detecta si está en semana o mes al cargar)
+cambiarModoCalendario();
