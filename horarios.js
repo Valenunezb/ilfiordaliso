@@ -84,12 +84,14 @@ function dibujarGrillaSemanal(lunesDate) {
     contenedor.innerHTML = html;
 }
 
+// 4. CARGAR Y PINTAR LOS TURNOS (ACTUALIZADO A "CINTAS VERTICALES")
 async function cargarTurnosAsignados(lunes, viernes) {
     const lunesStr = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart(2, '0')}-${String(lunes.getDate()).padStart(2, '0')}`;
     const viernesStr = `${viernes.getFullYear()}-${String(viernes.getMonth() + 1).padStart(2, '0')}-${String(viernes.getDate()).padStart(2, '0')}`;
 
+    // Agregamos contract_percentage a la búsqueda de la educadora
     const { data: asignaciones } = await supabaseClient.from('schedules').select('*').gte('date_assigned', lunesStr).lte('date_assigned', viernesStr);
-    const { data: staff } = await supabaseClient.from('staff').select('id, first_name, last_name');
+    const { data: staff } = await supabaseClient.from('staff').select('id, first_name, last_name, contract_percentage');
     const { data: tiposTurno } = await supabaseClient.from('shift_types').select('*');
 
     if (!asignaciones) return;
@@ -105,21 +107,38 @@ async function cargarTurnosAsignados(lunes, viernes) {
         
         if (celda) {
             const alturaPx = tipo.duration_hours * 80;
+            
+            // MAGIA PARA QUE NO SE PISEN:
+            // Contamos cuántos turnos ya se dibujaron en este mismo cuadrito
+            const turnosPrevios = celda.children.length; 
+            const anchoCinta = 32; // 32 píxeles de ancho para que sea delgadita
+            // Desplazamos la cinta hacia la derecha si ya hay otras antes que ella
+            const desplazamientoIzquierda = turnosPrevios * (anchoCinta + 4); 
+            
             const bloque = document.createElement('div');
-            // Le damos estilo "Pro" al bloque
-            bloque.className = "absolute top-0 left-0 w-full z-20 rounded-md shadow-sm p-1.5 overflow-hidden border border-white/20 text-white cursor-pointer hover:opacity-90 transition-opacity flex flex-col justify-start";
+            
+            // Clases de Tailwind modificadas para ser una cinta estrecha
+            bloque.className = "absolute top-0 z-20 rounded shadow-sm overflow-hidden border border-white/40 text-white cursor-pointer hover:brightness-110 transition-all flex justify-center py-2";
             bloque.style.backgroundColor = tipo.color_hex;
             bloque.style.height = `calc(${alturaPx}px - 2px)`; 
+            bloque.style.width = `${anchoCinta}px`;
+            bloque.style.left = `${desplazamientoIzquierda}px`; 
             
-            // Pintamos el nombre, el turno y la SALA dentro del bloque
-            const salaTexto = asignacion.sala ? asignacion.sala : "Sin sala";
+            // Preparamos los textos (Sala abreviada y el % del contrato)
+            const salaTexto = asignacion.sala ? asignacion.sala.substring(0,3).toUpperCase() : "S/S";
+            const porcentaje = profesional.contract_percentage ? profesional.contract_percentage : '100';
+
+            // TEXTO VERTICAL (Nombre | 100% | Sala)
             bloque.innerHTML = `
-                <div class="font-bold text-[11px] truncate leading-tight drop-shadow-md">${profesional.first_name} ${profesional.last_name.charAt(0)}.</div>
-                <div class="text-[9px] opacity-90 truncate drop-shadow-md">${tipo.name}</div>
-                <div class="mt-auto text-[9px] font-bold bg-white/20 rounded px-1 w-max drop-shadow-md">${salaTexto}</div>
+                <div class="text-[10px] font-bold whitespace-nowrap flex items-center gap-2 drop-shadow-md" style="writing-mode: vertical-rl; transform: rotate(180deg);">
+                    <span>${profesional.first_name}</span>
+                    <span class="opacity-60 font-normal">|</span>
+                    <span>${porcentaje}%</span>
+                    <span class="opacity-60 font-normal">|</span>
+                    <span class="bg-white/30 px-1 rounded">${salaTexto}</span>
+                </div>
             `;
 
-            // AL HACER CLIC EN EL BLOQUE, ABRIMOS EL MODAL EN MODO "EDICIÓN"
             bloque.onclick = (e) => {
                 e.stopPropagation(); 
                 abrirModalTurno(asignacion.date_assigned, asignacion.start_time, 'Turno Asignado', asignacion);
