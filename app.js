@@ -1,33 +1,5 @@
 // --- LÓGICA DE LA SPA (NAVEGACIÓN) ---
 
-function cambiarVista(idVistaDestino) {
-    const vistas = ['vista-educadoras', 'vista-ninos', 'vista-horarios'];
-    
-    // Diccionario para saber qué botón le pertenece a qué vista
-    const botones = {
-        'vista-educadoras': 'btn-menu-educadoras',
-        'vista-ninos': 'btn-menu-ninos',
-        'vista-horarios': 'btn-menu-horarios'
-    };
-
-    vistas.forEach(id => {
-        const elementoSeccion = document.getElementById(id);
-        const elementoBoton = document.getElementById(botones[id]);
-
-        if (id === idVistaDestino) {
-            // Mostramos la sección
-            elementoSeccion.classList.remove('hidden');
-            // Encendemos el botón (clases de Tailwind para activo)
-            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 transition-colors";
-        } else {
-            // Ocultamos la sección
-            elementoSeccion.classList.add('hidden');
-            // Apagamos el botón (clases de Tailwind para inactivo)
-            elementoBoton.className = "w-full text-left px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors";
-        }
-    });
-}
-
 // Función para buscar las educadoras y mostrarlas
 async function cargarEducadoras() {
     const contenedor = document.getElementById('contenedor-educadoras');
