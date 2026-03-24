@@ -33,6 +33,7 @@ function cambiarModoCalendario() {
     }
 }
 
+// --- REEMPLAZA ESTA FUNCIÓN PARA QUE ESPERE A LOS FESTIVOS ---
 async function actualizarCalendario() {
     const lunes = obtenerLunes(fechaVistaActual);
     const viernes = new Date(lunes);
@@ -41,8 +42,78 @@ async function actualizarCalendario() {
     const opciones = { day: 'numeric', month: 'short' };
     document.getElementById('texto-rango-semana').innerText = `${lunes.toLocaleDateString('es-ES', opciones)} - ${viernes.toLocaleDateString('es-ES', opciones)}`;
     
-    dibujarGrillaSemanal(lunes);
+    // Ahora esperamos a que se dibuje la grilla (porque ahora busca en la base de datos)
+    await dibujarGrillaSemanal(lunes);
     await cargarTurnosAsignados(lunes, viernes);
+}
+
+// --- REEMPLAZA ESTA FUNCIÓN PARA PINTAR LOS FESTIVOS ---
+async function dibujarGrillaSemanal(lunesDate) {
+    const contenedor = document.getElementById('contenedor-calendario');
+    if (!contenedor) return;
+
+    // 🌟 Buscamos los festivos en la base de datos
+    const { data: festivos } = await supabaseClient.from('holidays').select('*');
+
+    const horas = ["6:30", "7:00", "7:30", "8:00", "8:30", "9:00", "9:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30"];
+    const nombresDias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    const columnasDias = [];
+    
+    for(let i=0; i<5; i++) {
+        const dia = new Date(lunesDate);
+        dia.setDate(lunesDate.getDate() + i);
+        
+        const year = dia.getFullYear();
+        const month = String(dia.getMonth() + 1).padStart(2, '0');
+        const day = String(dia.getDate()).padStart(2, '0');
+        const fechaSQL = `${year}-${month}-${day}`;
+        
+        // Verificamos si este día exacto es un festivo
+        const diaFestivo = festivos ? festivos.find(f => f.holiday_date === fechaSQL) : null;
+        
+        columnasDias.push({
+            texto: `${nombresDias[i]} ${dia.getDate()}`,
+            fechaSQL: fechaSQL,
+            festivo: diaFestivo // Guardamos el dato del festivo aquí
+        });
+    }
+
+    let html = `
+        <div class="min-w-[1000px]">
+            <div class="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] bg-indigo-50 border-b border-gray-200 text-sm font-bold text-gray-700 text-center sticky top-0 z-30">
+                <div class="p-3 border-r border-gray-200 flex items-center justify-center">Hora</div>
+                ${columnasDias.map(dia => `
+                    <div class="p-3 border-r border-gray-200 flex flex-col justify-center items-center ${dia.festivo ? 'bg-rose-100 text-rose-800' : ''}">
+                        <span>${dia.texto}</span>
+                        ${dia.festivo ? `<span class="mt-1 text-[10px] bg-rose-200/80 text-rose-900 px-2 py-0.5 rounded-md truncate max-w-[140px]" title="${dia.festivo.description}">🎉 ${dia.festivo.description}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+    `;
+
+    horas.forEach(hora => {
+        html += `<div class="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] border-b border-gray-100 text-xs hover:bg-gray-50 transition-colors group">`;
+        html += `<div class="p-2 border-r border-gray-200 text-gray-500 text-right pr-4 font-medium flex items-center justify-end">${hora}</div>`;
+        
+        for(let i=0; i<5; i++) {
+            const fechaSQL = columnasDias[i].fechaSQL;
+            const diaBonito = columnasDias[i].texto;
+            const esFestivo = columnasDias[i].festivo;
+            
+            // Si es festivo, pintamos toda la columna de un color suave
+            const bgClass = esFestivo ? 'bg-rose-50/40 hover:bg-rose-100/50' : 'hover:bg-indigo-50';
+            
+            html += `
+                <div id="celda-${fechaSQL}-${hora}" class="border-r border-gray-100 p-1 relative min-h-[40px] flex gap-1 cursor-pointer transition-colors ${bgClass}" 
+                     onclick="abrirModalTurno('${fechaSQL}', '${hora}', '${diaBonito}')">
+                </div>
+            `;
+        }
+        html += `</div>`;
+    });
+
+    html += `</div>`;
+    contenedor.innerHTML = html;
 }
 
 function cambiarSemana(direccion) {
