@@ -177,7 +177,7 @@
     <div id="modal-asignar-turno" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border border-gray-100">
             <header class="flex justify-between items-center mb-5">
-                <h3 class="text-xl font-bold text-gray-800">Asignar Educadora</h3>
+                <h3 id="modal-titulo" class="text-xl font-bold text-gray-800">Asignar Educadora</h3>
                 <button onclick="cerrarModalTurno()" class="text-gray-400 hover:text-red-500 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -185,7 +185,7 @@
             
             <div class="mb-5 bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-sm text-indigo-800 flex justify-between items-center">
                 <div>
-                    <span class="block text-indigo-500 text-xs font-bold uppercase tracking-wider">Fecha Seleccionada</span>
+                    <span class="block text-indigo-500 text-xs font-bold uppercase tracking-wider">Día</span>
                     <span id="modal-fecha-texto" class="font-medium">---</span>
                 </div>
                 <div class="text-right">
@@ -193,6 +193,8 @@
                     <span id="modal-hora-texto" class="font-bold text-lg">---</span>
                 </div>
             </div>
+
+            <input type="hidden" id="modal-asignacion-id" value="">
 
             <div class="space-y-4">
                 <div>
@@ -208,17 +210,32 @@
                         <option value="">Cargando turnos...</option>
                     </select>
                 </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">🏠 Sala Asignada</label>
+                    <select id="modal-select-sala" class="w-full border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-gray-50 cursor-pointer">
+                        <option value="">Selecciona una sala...</option>
+                        <option value="Brucco">Brucco (3m-1a)</option>
+                        <option value="Bozzoli">Bozzoli (1a-2a)</option>
+                        <option value="Farfalle">Farfalle (2a-3a)</option>
+                        <option value="Centro">Centro (Mayores)</option>
+                    </select>
+                </div>
             </div>
 
-            <footer class="mt-8 flex justify-end gap-3">
-                <button onclick="cerrarModalTurno()" class="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition">Cancelar</button>
-                <button id="btn-guardar-asignacion" onclick="guardarAsignacion()" class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition">
-                    Asignar Turno
-                </button>
+            <footer class="mt-8 flex justify-between gap-3">
+                <button id="btn-eliminar-asignacion" onclick="eliminarAsignacion()" class="hidden px-4 py-2 text-red-600 font-bold hover:bg-red-50 rounded-xl transition">Eliminar</button>
+                
+                <div class="flex gap-3 ml-auto">
+                    <button onclick="cerrarModalTurno()" class="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition">Cancelar</button>
+                    <button id="btn-guardar-asignacion" onclick="guardarAsignacion()" class="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 transition">
+                        Guardar
+                    </button>
+                </div>
             </footer>
         </div>
     </div>
-
+    
     <script src="supabase.js"></script>
     <script src="horarios.js"></script> <script src="app.js"></script>
     <script src="ajustes.js"></script>
