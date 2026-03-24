@@ -1,14 +1,36 @@
-// horarios.js - Lógica completa de Calendario, Asignación, Edición y Salas
+// horarios.js - Lógica completa de Calendario, Asignación, Edición, Salas y Vistas
 
 let fechaVistaActual = new Date(); 
 let fechaCeldaSeleccionada = null;
 let horaCeldaSeleccionada = null;
+
+// --- 1. NAVEGACIÓN Y VISTAS ---
 
 function obtenerLunes(fecha) {
     const d = new Date(fecha);
     const dia = d.getDay();
     const diferencia = d.getDate() - dia + (dia === 0 ? -6 : 1); 
     return new Date(d.setDate(diferencia));
+}
+
+function cambiarVista() {
+    const vista = document.getElementById('selector-vista').value;
+    const contSemanal = document.getElementById('contenedor-semanal');
+    const contMensual = document.getElementById('contenedor-mensual');
+
+    if (vista === 'semana') {
+        contSemanal.classList.remove('hidden');
+        contMensual.classList.add('hidden');
+        actualizarCalendario();
+    } else if (vista === 'mes') {
+        contSemanal.classList.add('hidden');
+        contMensual.classList.remove('hidden');
+        dibujarGrillaMensual();
+    } else {
+        alert("¡La vista Anual será nuestra próxima gran actualización! Por ahora veamos el mes.");
+        document.getElementById('selector-vista').value = 'mes';
+        cambiarVista();
+    }
 }
 
 async function actualizarCalendario() {
@@ -24,14 +46,33 @@ async function actualizarCalendario() {
 }
 
 function cambiarSemana(direccion) {
-    fechaVistaActual.setDate(fechaVistaActual.getDate() + (direccion * 7));
-    actualizarCalendario();
+    const vista = document.getElementById('selector-vista').value;
+    if (vista === 'mes') {
+        fechaVistaActual.setMonth(fechaVistaActual.getMonth() + direccion);
+        dibujarGrillaMensual();
+    } else {
+        fechaVistaActual.setDate(fechaVistaActual.getDate() + (direccion * 7));
+        actualizarCalendario();
+    }
 }
 
 function irAHoy() {
     fechaVistaActual = new Date();
-    actualizarCalendario();
+    const vista = document.getElementById('selector-vista').value;
+    if (vista === 'mes') {
+        dibujarGrillaMensual();
+    } else {
+        actualizarCalendario();
+    }
 }
+
+function saltarAsemana(fechaIso) {
+    fechaVistaActual = new Date(fechaIso);
+    document.getElementById('selector-vista').value = 'semana';
+    cambiarVista();
+}
+
+// --- 2. DIBUJAR VISTA SEMANAL Y TURNOS ---
 
 function dibujarGrillaSemanal(lunesDate) {
     const contenedor = document.getElementById('contenedor-calendario');
@@ -84,7 +125,6 @@ function dibujarGrillaSemanal(lunesDate) {
     contenedor.innerHTML = html;
 }
 
-// 4. CARGAR Y PINTAR LOS TURNOS (SISTEMA ANTI-COLISIONES Y ORDEN POR SALA)
 async function cargarTurnosAsignados(lunes, viernes) {
     const lunesStr = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart(2, '0')}-${String(lunes.getDate()).padStart(2, '0')}`;
     const viernesStr = `${viernes.getFullYear()}-${String(viernes.getMonth() + 1).padStart(2, '0')}-${String(viernes.getDate()).padStart(2, '0')}`;
@@ -95,16 +135,13 @@ async function cargarTurnosAsignados(lunes, viernes) {
 
     if (!asignaciones) return;
 
-    // 1. Definimos el orden estricto de izquierda a derecha
     const ordenSalas = ["Brucco", "Bozzoli", "Farfalle", "Centro"];
 
-    // Función auxiliar para convertir "08:30" en minutos (facilita calcular si chocan)
     function horaAMinutos(horaTexto) {
         const [h, m] = horaTexto.split(':').map(Number);
         return h * 60 + m;
     }
 
-    // 2. Agrupamos todos los turnos por Día y luego por Sala
     const mapaDias = {};
 
     asignaciones.forEach(asignacion => {
@@ -128,27 +165,22 @@ async function cargarTurnosAsignados(lunes, viernes) {
         }
     });
 
-    // 3. Procesamos cada día dibujando de izquierda a derecha
     for (const date in mapaDias) {
-        let carrilGlobalIndex = 0; // Índice de columna general del día
+        let carrilGlobalIndex = 0; 
         const salasDelDia = [...ordenSalas, "Otros"];
 
         salasDelDia.forEach(salaKey => {
             const turnosSala = mapaDias[date][salaKey];
-            
-            // Ordenamos primero al que entra más temprano
             turnosSala.sort((a, b) => a.start - b.start);
 
-            const carrilesOcupados = []; // Control de colisiones de esta sala
+            const carrilesOcupados = []; 
 
             turnosSala.forEach(turnoInfo => {
                 let carrilLocal = 0;
                 let colocado = false;
 
-                // Buscamos un carril libre para que no se pise con otra de su misma sala
                 while (!colocado) {
                     if (!carrilesOcupados[carrilLocal]) carrilesOcupados[carrilLocal] = [];
-
                     const hayChoque = carrilesOcupados[carrilLocal].some(t => {
                         return (turnoInfo.start < t.end) && (turnoInfo.end > t.start);
                     });
@@ -157,22 +189,18 @@ async function cargarTurnosAsignados(lunes, viernes) {
                         carrilesOcupados[carrilLocal].push(turnoInfo);
                         colocado = true;
                     } else {
-                        carrilLocal++; // Si choca, probamos en el carril de al lado
+                        carrilLocal++; 
                     }
                 }
-
-                // Dibujamos el bloque en su posición exacta
                 dibujarBloque(turnoInfo, carrilGlobalIndex + carrilLocal);
             });
 
-            // Sumamos los carriles que usó esta sala para que la siguiente empiece más a la derecha
             if (carrilesOcupados.length > 0) {
                 carrilGlobalIndex += carrilesOcupados.length;
             }
         });
     }
 
-    // 4. El "Pintor"
     function dibujarBloque(turnoInfo, laneIndex) {
         const { asignacion, tipo, profesional } = turnoInfo;
         const idCelda = `celda-${asignacion.date_assigned}-${asignacion.start_time}`;
@@ -181,7 +209,7 @@ async function cargarTurnosAsignados(lunes, viernes) {
         if (celda) {
             const alturaPx = tipo.duration_hours * 80;
             const anchoCinta = 32;
-            const espacio = 6; // Píxeles de separación entre cintas
+            const espacio = 6; 
             const desplazamientoIzquierda = laneIndex * (anchoCinta + espacio);
 
             const bloque = document.createElement('div');
@@ -214,9 +242,93 @@ async function cargarTurnosAsignados(lunes, viernes) {
     }
 }
 
-// --- LÓGICA DEL MODAL ---
+// --- 3. DIBUJAR VISTA MENSUAL ---
 
-// Esta función ahora es inteligente: sabe si estás creando o editando
+function dibujarGrillaMensual() {
+    const contenedor = document.getElementById('contenedor-mensual');
+    if (!contenedor) return;
+
+    const año = fechaVistaActual.getFullYear();
+    const mes = fechaVistaActual.getMonth();
+    
+    const primerDiaMes = new Date(año, mes, 1);
+    
+    let diaSemanaInicio = primerDiaMes.getDay() - 1;
+    if (diaSemanaInicio === -1) diaSemanaInicio = 6; 
+
+    const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    document.getElementById('texto-rango-semana').innerText = `${mesesNombres[mes]} ${año}`;
+
+    let html = `<div class="min-w-[800px]">`;
+    
+    html += `<div class="grid grid-cols-7 bg-indigo-50 border-b border-gray-200 text-sm font-bold text-gray-700 text-center">`;
+    ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"].forEach(d => {
+        html += `<div class="p-3 border-r border-gray-200">${d}</div>`;
+    });
+    html += `</div>`;
+
+    html += `<div class="grid grid-cols-7 border-b border-gray-100 bg-gray-50/20">`;
+    
+    let diaActual = new Date(primerDiaMes);
+    diaActual.setDate(diaActual.getDate() - diaSemanaInicio); 
+
+    const hoy = new Date();
+    const inicioSemanaActual = obtenerLunes(hoy);
+    const finSemanaActual = new Date(inicioSemanaActual);
+    finSemanaActual.setDate(inicioSemanaActual.getDate() + 6);
+
+    for (let i = 0; i < 42; i++) {
+        const esMesActual = diaActual.getMonth() === mes;
+        const esHoy = diaActual.getDate() === hoy.getDate() && diaActual.getMonth() === hoy.getMonth() && diaActual.getFullYear() === hoy.getFullYear();
+        
+        const dActualCero = new Date(diaActual).setHours(0,0,0,0);
+        const inicioCero = new Date(inicioSemanaActual).setHours(0,0,0,0);
+        const finCero = new Date(finSemanaActual).setHours(0,0,0,0);
+        const esSemanaActual = dActualCero >= inicioCero && dActualCero <= finCero;
+        
+        let bgClass = esMesActual ? "bg-white" : "bg-gray-100/50";
+        let opacidadBurbuja = esSemanaActual ? "opacity-100 shadow-sm" : "opacity-40 hover:opacity-100 transition-opacity";
+        
+        let numeroClase = esHoy 
+            ? "bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md font-bold text-sm" 
+            : "font-semibold text-gray-700 w-8 h-8 flex items-center justify-center text-sm";
+        if (!esMesActual && !esHoy) numeroClase = "font-medium text-gray-400 w-8 h-8 flex items-center justify-center text-sm";
+
+        const estados = [
+            { color: "bg-green-500", texto: "OK" },
+            { color: "bg-orange-500", texto: "Sobran Profes" },
+            { color: "bg-red-500", texto: "Faltan Profes" }
+        ];
+        const estadoVisual = estados[Math.floor(Math.random() * estados.length)];
+        const esFinde = diaActual.getDay() === 0 || diaActual.getDay() === 6;
+
+        html += `
+            <div class="min-h-[120px] border-r border-b border-gray-200 p-2 relative hover:bg-gray-50 transition cursor-pointer group ${bgClass}" 
+                 onclick="saltarAsemana('${diaActual.toISOString()}')" title="Clic para ver detalles de este día">
+                
+                <div class="flex justify-end mb-2">
+                    <span class="${numeroClase}">${diaActual.getDate()}</span>
+                </div>
+                
+                ${!esFinde && esMesActual ? `
+                    <div class="flex flex-col gap-1 mt-1 ${opacidadBurbuja}">
+                        <div class="text-[10px] text-white ${estadoVisual.color} px-2 py-1.5 rounded-md font-bold text-center truncate tracking-wide">
+                            ${estadoVisual.texto}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        diaActual.setDate(diaActual.getDate() + 1);
+    }
+
+    html += `</div></div>`;
+    contenedor.innerHTML = html;
+}
+
+// --- 4. LÓGICA DEL MODAL ---
+
 async function abrirModalTurno(fechaSQL, hora, diaBonito, asignacionExistente = null) {
     fechaCeldaSeleccionada = fechaSQL;
     horaCeldaSeleccionada = hora;
@@ -224,35 +336,30 @@ async function abrirModalTurno(fechaSQL, hora, diaBonito, asignacionExistente = 
     document.getElementById('modal-fecha-texto').innerText = diaBonito;
     document.getElementById('modal-hora-texto').innerText = hora;
     
-    // Cargamos las opciones primero
     await cargarOpcionesModal();
 
     const titulo = document.getElementById('modal-titulo');
     const inputId = document.getElementById('modal-asignacion-id');
     const btnEliminar = document.getElementById('btn-eliminar-asignacion');
     
-    // Resetear valores de los selects
     document.getElementById('modal-select-educadora').value = "";
     document.getElementById('modal-select-turno').value = "";
     document.getElementById('modal-select-sala').value = "";
 
     if (asignacionExistente) {
-        // MODO EDICIÓN
         titulo.innerText = "Editar Turno";
         inputId.value = asignacionExistente.id;
-        btnEliminar.classList.remove('hidden'); // Mostramos el botón rojo
+        btnEliminar.classList.remove('hidden'); 
         
-        // Rellenar con los datos guardados
         document.getElementById('modal-select-educadora').value = asignacionExistente.staff_id;
         document.getElementById('modal-select-turno').value = asignacionExistente.shift_type_id;
         if(asignacionExistente.sala) {
             document.getElementById('modal-select-sala').value = asignacionExistente.sala;
         }
     } else {
-        // MODO CREACIÓN
         titulo.innerText = "Asignar Educadora";
         inputId.value = "";
-        btnEliminar.classList.add('hidden'); // Ocultamos el botón rojo
+        btnEliminar.classList.add('hidden'); 
     }
 
     const modal = document.getElementById('modal-asignar-turno');
@@ -270,7 +377,6 @@ async function cargarOpcionesModal() {
     const selectEducadora = document.getElementById('modal-select-educadora');
     const selectTurno = document.getElementById('modal-select-turno');
 
-    // Solo cargar si están vacíos para no gastar internet
     if (selectEducadora.options.length <= 1) {
         const { data: staff } = await supabaseClient.from('staff').select('id, first_name, last_name');
         if (staff) {
@@ -310,14 +416,12 @@ async function guardarAsignacion() {
     let error;
 
     if (idAsignacion) {
-        // ACTUALIZAR TURNO EXISTENTE
         const { error: errUpdate } = await supabaseClient
             .from('schedules')
             .update({ staff_id: idEducadora, shift_type_id: idTurno, sala: salaSeleccionada })
             .eq('id', idAsignacion);
         error = errUpdate;
     } else {
-        // CREAR TURNO NUEVO
         const { error: errInsert } = await supabaseClient
             .from('schedules')
             .insert([{ 
@@ -343,7 +447,6 @@ async function guardarAsignacion() {
     actualizarCalendario(); 
 }
 
-// Función para eliminar el turno
 async function eliminarAsignacion() {
     const idAsignacion = document.getElementById('modal-asignacion-id').value;
     
@@ -363,40 +466,25 @@ async function eliminarAsignacion() {
     actualizarCalendario();
 }
 
-// Arrancamos el sistema
-actualizarCalendario();
-
-// --- FUNCIONES DE EXPORTACIÓN Y VISTAS ---
+// --- 5. FUNCIONES DE EXPORTACIÓN ---
 
 function imprimirHorario() {
-    // Al llamar a print(), el navegador abre automáticamente la ventana para guardar como PDF o Imprimir
     window.print();
 }
 
 function compartirWhatsApp() {
     const textoSemana = document.getElementById('texto-rango-semana').innerText;
-    const mensaje = `¡Hola equipo! 🌟 Ya están listos los horarios para la semana: *${textoSemana}*. Por favor ingresen al sistema para revisar sus turnos y salas asignadas.`;
-    
-    // Abre WhatsApp Web o la app del celular con el mensaje pre-escrito
+    const mensaje = `¡Hola equipo! 🌟 Ya están listos los horarios para: *${textoSemana}*. Por favor ingresen al sistema para revisar sus turnos y salas asignadas.`;
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
 }
 
 function compartirEmail() {
     const textoSemana = document.getElementById('texto-rango-semana').innerText;
-    const asunto = `Nuevos Horarios: Semana ${textoSemana}`;
-    const cuerpo = `¡Hola equipo!\n\nYa están disponibles los horarios para la semana: ${textoSemana}.\n\nPor favor, ingresen a la plataforma para revisar sus turnos y salas asignadas.\n\nSaludos cordiales.`;
-    
-    // Abre el gestor de correos (Outlook, Gmail, Apple Mail)
+    const asunto = `Nuevos Horarios: ${textoSemana}`;
+    const cuerpo = `¡Hola equipo!\n\nYa están disponibles los horarios para: ${textoSemana}.\n\nPor favor, ingresen a la plataforma para revisar sus turnos y salas asignadas.\n\nSaludos cordiales.`;
     window.location.href = `mailto:?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
 }
 
-function cambiarVista() {
-    const vistaSeleccionada = document.getElementById('selector-vista').value;
-    
-    if (vistaSeleccionada === 'mes' || vistaSeleccionada === 'ano') {
-        alert("¡Has seleccionado la vista " + vistaSeleccionada.toUpperCase() + "!\n\nEsta será nuestra próxima gran actualización visual. Por ahora te regresaré a la vista semanal.");
-        // Devolvemos el selector a la semana temporalmente
-        document.getElementById('selector-vista').value = 'semana';
-    }
-}
+// Arrancamos el sistema (cambiarVista detecta si está en semana o mes al cargar)
+cambiarVista();

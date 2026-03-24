@@ -114,8 +114,18 @@
                 </div>
             </header>
             
-            <div id="contenedor-calendario" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-                <p class="p-6 text-gray-400 animate-pulse">Cargando grilla de horarios...</p>
+            <div id="vistas-calendario">
+                
+                <div id="contenedor-semanal" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto block">
+                    <div id="contenedor-calendario">
+                        <p class="p-6 text-gray-400 animate-pulse">Cargando grilla semanal...</p>
+                    </div>
+                </div>
+
+                <div id="contenedor-mensual" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto hidden">
+                    <p class="p-6 text-gray-400 animate-pulse">Cargando grilla mensual...</p>
+                </div>
+
             </div>
         </section>
 
