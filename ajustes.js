@@ -1,14 +1,14 @@
-// ajustes.js - Lógica para la vista de Ajustes y Festivos
+// ajustes.js - Lógica para la vista de Ajustes y Festivos adaptada a tu base de datos
 
 // 1. Cargar los festivos desde Supabase
 async function cargarFestivos() {
     const lista = document.getElementById('lista-festivos');
     
-    // Traemos los datos ordenados por fecha
+    // Traemos los datos usando tu columna "holiday_date"
     const { data: festivos, error } = await supabaseClient
         .from('holidays')
         .select('*')
-        .order('date', { ascending: true });
+        .order('holiday_date', { ascending: true });
 
     if (error) {
         console.error("Error al cargar festivos:", error);
@@ -16,7 +16,6 @@ async function cargarFestivos() {
         return;
     }
 
-    // Limpiamos la lista
     lista.innerHTML = '';
 
     if (festivos.length === 0) {
@@ -24,10 +23,9 @@ async function cargarFestivos() {
         return;
     }
 
-    // Dibujamos cada festivo
     festivos.forEach(festivo => {
-        // Formateamos la fecha para que se vea bonita (ej: 25 Dic 2024)
-        const fechaObj = new Date(festivo.date + 'T00:00:00'); // Evita desfases de zona horaria
+        // Usamos festivo.holiday_date
+        const fechaObj = new Date(festivo.holiday_date + 'T00:00:00'); 
         const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
         const fechaBonita = fechaObj.toLocaleDateString('es-ES', opciones);
 
@@ -36,7 +34,7 @@ async function cargarFestivos() {
         li.innerHTML = `
             <div>
                 <span class="font-medium text-gray-700 w-28 inline-block">${fechaBonita}</span>
-                <span class="text-gray-600">${festivo.name}</span>
+                <span class="text-gray-600">${festivo.description}</span>
             </div>
             <button onclick="eliminarFestivo('${festivo.id}')" class="text-red-400 hover:text-red-600 px-2 font-bold" title="Eliminar festivo">✕</button>
         `;
@@ -60,9 +58,10 @@ async function guardarFestivo(event) {
     boton.innerText = "Guardando...";
     boton.disabled = true;
 
+    // Aquí guardamos enviando los datos a "holiday_date" y "description"
     const { error } = await supabaseClient
         .from('holidays')
-        .insert([{ date: inputFecha, name: inputNombre }]);
+        .insert([{ holiday_date: inputFecha, description: inputNombre }]);
 
     boton.innerText = "Añadir";
     boton.disabled = false;
@@ -73,7 +72,6 @@ async function guardarFestivo(event) {
         return;
     }
 
-    // Limpiamos los campos y recargamos la lista
     document.getElementById('festivo-fecha').value = '';
     document.getElementById('festivo-nombre').value = '';
     cargarFestivos();
@@ -94,7 +92,6 @@ async function eliminarFestivo(id) {
         return;
     }
 
-    // Recargamos la lista para que desaparezca
     cargarFestivos();
 }
 
